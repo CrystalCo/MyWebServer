@@ -90,7 +90,7 @@ class ListenWorker extends Thread {
             in  = new BufferedReader(new InputStreamReader(sock1.getInputStream()));
             out = new PrintStream(sock1.getOutputStream());
             String filename;
-            String clHeaderRequest;
+            String request; // CL Header Request
             
             while (true) {
                 // WEBSER ACCEPTS A STRING OF FILENAME
@@ -106,18 +106,92 @@ class ListenWorker extends Thread {
                     
                 // THEN THE WEB BROWSER WILL RECEIVE THE CONTENTS OF THE FILE FROM YOUR PROGRAM 
                 // CLOSE CONNECTION DONE
-                clHeaderRequest = in.readLine ();
+                request = in.readLine ();   // CL Header Request
                 // System.out.println("Looking up " + filename);
                 // printRemoteAddress(filename, out);
-                if (clHeaderRequest != null) {
-                    if (clHeaderRequest.contains("GET")) {
-                        filename = clHeaderRequest.substring(5);
-                        String[] parseGetRequest = filename.split(" ");
-                        filename = parseGetRequest[0];
-                        System.out.println("PARSED FILENAME: " + filename);
-                    } 
-                    System.out.println(clHeaderRequest);
+                if (request != null) {
+                    // Return ERROR if proper headings not received:
+                    if (!request.startsWith("GET") || request.length()<14 ||
+                    !(request.endsWith("HTTP/1.0") || request.endsWith("HTTP/1.1"))) {
+                        errorReport(pout, connection, "400", "Bad Request", 
+                                    "Your browser sent a request that " + 
+                                    "this server could not understand.");
+                    } else {
+                        // Assumes request starts with GET and therefore doesn't need this if statement: if (request.contains("GET")) {
+                        if (request.contains("..")) {
+                            // LATER REPLACE WITH:          if (req.indexOf("..")!=-1 || req.indexOf("/.ht")!=-1 || req.endsWith("~")) {
+                            // if client is trying to access directories outside this one, close the socket and return nothing to those hackers!
+                            errorReport(pout, connection, "403", "Forbidden", "You don't have permission to access the requested URL.");
+                            return;
+                        } else {
+                            // parse filename
+                            filename = request.substring(5);
+                            String[] parseGetRequest = filename.split(" ");
+                            filename = parseGetRequest[0];
+                            System.out.println("PARSED FILENAME: " + filename);
+                            // Another way to do this: String req = request.substring(4, request.length()-9).trim();
+                            
+                            String path = 
+                            /** another way to do this:
+                             * 
+                             */
+                        }
+                        
+
+                    }
+
+                    System.out.println(request);
                 }
+
+// parse the line
+                if (!request.startsWith("GET") || request.length()<14 ||
+                    !(request.endsWith("HTTP/1.0") || request.endsWith("HTTP/1.1"))) {
+                    // bad request
+                    errorReport(pout, connection, "400", "Bad Request", 
+                                "Your browser sent a request that " + 
+                                "this server could not understand.");
+                } else {
+                    String req = request.substring(4, request.length()-9).trim();
+                    if (req.indexOf("..")!=-1 || req.indexOf("/.ht")!=-1 || req.endsWith("~")) {
+                        // evil hacker trying to read non-wwwhome or secret file
+                        errorReport(pout, connection, "403", "Forbidden",
+                                    "You don't have permission to access the requested URL.");
+                    } else {
+                        String path = wwwhome + "/" + req;
+                        File f = new File(path);
+                        if (f.isDirectory() && !path.endsWith("/")) {
+                            // redirect browser if referring to directory without final '/'
+                            pout.print("HTTP/1.0 301 Moved Permanently\r\n" +
+                                       "Location: http://" + 
+                                       connection.getLocalAddress().getHostAddress() + ":" +
+                                       connection.getLocalPort() + "/" + req + "/\r\n\r\n");
+                            log(connection, "301 Moved Permanently");
+                        } else {
+                            if (f.isDirectory()) { 
+                                // if directory, implicitly add 'index.html'
+                                path = path + "index.html";
+                                f = new File(path);
+                            }
+                            try { 
+                                // send file
+                                InputStream file = new FileInputStream(f);
+                                pout.print("HTTP/1.0 200 OK\r\n" +
+                                           "Content-Type: " + guessContentType(path) + "\r\n" +
+                                           "Date: " + new Date() + "\r\n" +
+                                           "Server: FileServer 1.0\r\n\r\n");
+                                sendFile(file, out); // send raw file 
+                                log(connection, "200 OK");
+                            } catch (FileNotFoundException e) { 
+                                // file not found
+                                errorReport(pout, connection, "404", "Not Found",
+                                            "The requested URL was not found on this server.");
+                            }
+                        }
+                    }
+                }
+                out.flush();
+
+
                 System.out.flush ();
             }
 
@@ -126,6 +200,26 @@ class ListenWorker extends Thread {
             System.out.println("Connetion reset. Listening again...");
             System.out.println(err2);
         }
+    }
+
+    static void log(Socket connection, String msg) {
+        System.err.println(new Date() + " [" + connection.getInetAddress().getHostAddress() + 
+                           ":" + connection.getPort() + "] " + msg);
+    }
+
+    static void errorReport(PrintStream pout, Socket connection, String code, String title, String msg) {
+        pout.print("HTTP/1.0 " + code + " " + title + "\r\n" +
+                   "\r\n" +
+                   "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\r\n" +
+                   "<TITLE>" + code + " " + title + "</TITLE>\r\n" +
+                   "</HEAD><BODY>\r\n" +
+                   "<H1>" + title + "</H1>\r\n" + msg + "<P>\r\n" +
+                   "<HR><ADDRESS>FileServer 1.0 at " + 
+                   connection.getLocalAddress().getHostName() + 
+                   " Port " + connection.getLocalPort() + "</ADDRESS>\r\n" +
+                   "</BODY></HTML>\r\n");
+        log(connection, code + " " + title);
+        connection.close();
     }
 
     static void printRemoteAddress(String name, PrintStream out) {
