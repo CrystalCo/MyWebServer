@@ -1,0 +1,46 @@
+TO RUN TELNET:
+I installed the telnet application using homebrew:
+> brew install telnet
+
+After it finished installing, I tested it by entering:
+> telnet condor.depaul.edu 80
+
+Then I ran the depaul hostname and web server port, as provided in the instructions:
+
+        Crystals-MacBook:MyWebServer crystalcontreras$ telnet condor.depaul.edu 80
+        Trying 216.220.180.150...
+        Connected to condor.depaul.edu.
+        Escape character is '^]'.
+
+I gave telnet the following input:
+
+        http://condor.depaul.edu/elliott/cat.html
+
+This is the HTTP response I received:
+
+        HTTP/1.1 400 Bad Request
+        Date: Sun, 06 Oct 2019 19:33:24 GMT
+        Server: Apache
+        Content-Length: 226
+        Connection: close
+        Content-Type: text/html; charset=iso-8859-1
+
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>400 Bad Request</title>
+        </head><body>
+        <h1>Bad Request</h1>
+        <p>Your browser sent a request that this server could not understand.<br />
+        </p>
+        </body></html>
+        Connection closed by foreign host.
+
+Apparently, I was not the only student to get this response. 
+Also, Telnet did not provide lines for "Last-Modified", "Etag", or "Accept-Ranges: bytes" like
+the example provided in our assignment:
+Last-Modified: Wed, 07 Oct 2015 20:29:55 GMT
+ETag: "8a1bfc-30-521899bff76c0"
+Accept-Ranges: bytes
+
+
+
