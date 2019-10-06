@@ -51,17 +51,17 @@
  * 
  * This is the response I received on MyWebServer:
  * 
- * Crystals-MacBook:MyWebServer crystalcontreras$ java MyWebServer
- * Clark Elliott's MyWebServer Listener 1.8 starting up, listening at port 2540.
- * 
- * GET /TEST HTTP/1.1
- * Host: localhost:2540
- * User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:69.0) Gecko/20100101 Firefox/69.0
- * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8         <-- inserted backslash before the forwardslash to prevent comment section from closing out
- * Accept-Language: en-US,en;q=0.5
- * Accept-Encoding: gzip, deflate
- * Connection: keep-alive
- * Upgrade-Insecure-Requests: 1
+        * Crystals-MacBook:MyWebServer crystalcontreras$ java MyWebServer
+        * Clark Elliott's MyWebServer Listener 1.8 starting up, listening at port 2540.
+        * 
+        * GET /TEST HTTP/1.1
+        * Host: localhost:2540
+        * User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:69.0) Gecko/20100101 Firefox/69.0
+        * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8         <-- inserted backslash before the forwardslash to prevent comment section from closing out
+        * Accept-Language: en-US,en;q=0.5
+        * Accept-Encoding: gzip, deflate
+        * Connection: keep-alive
+        * Upgrade-Insecure-Requests: 1
  * 
  * 
  * 5. List of files needed for running the program, all of which are in the same directory.
@@ -90,6 +90,7 @@ class ListenWorker extends Thread {
             in  = new BufferedReader(new InputStreamReader(sock1.getInputStream()));
             out = new PrintStream(sock1.getOutputStream());
             String filename;
+            String clHeaderRequest;
             
             while (true) {
                 // WEBSER ACCEPTS A STRING OF FILENAME
@@ -105,10 +106,18 @@ class ListenWorker extends Thread {
                     
                 // THEN THE WEB BROWSER WILL RECEIVE THE CONTENTS OF THE FILE FROM YOUR PROGRAM 
                 // CLOSE CONNECTION DONE
-                filename = in.readLine ();
+                clHeaderRequest = in.readLine ();
                 // System.out.println("Looking up " + filename);
                 // printRemoteAddress(filename, out);
-                if (filename != null) System.out.println(filename);
+                if (clHeaderRequest != null) {
+                    if (clHeaderRequest.contains("GET")) {
+                        filename = clHeaderRequest.substring(5);
+                        String[] parseGetRequest = filename.split(" ");
+                        filename = parseGetRequest[0];
+                        System.out.println("PARSED FILENAME: " + filename);
+                    } 
+                    System.out.println(clHeaderRequest);
+                }
                 System.out.flush ();
             }
 

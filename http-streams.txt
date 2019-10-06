@@ -7,7 +7,7 @@ After it finished installing, I tested it by entering:
 
 Then I ran the depaul hostname and web server port, as provided in the instructions:
 
-        Crystals-MacBook:MyWebServer crystalcontreras$ telnet condor.depaul.edu 80
+        Crystals-MacBook:MyWebServer cc$ telnet condor.depaul.edu 80
         Trying 216.220.180.150...
         Connected to condor.depaul.edu.
         Escape character is '^]'.
@@ -38,9 +38,51 @@ This is the HTTP response I received:
 Apparently, I was not the only student to get this response. 
 Also, Telnet did not provide lines for "Last-Modified", "Etag", or "Accept-Ranges: bytes" like
 the example provided in our assignment:
-Last-Modified: Wed, 07 Oct 2015 20:29:55 GMT
-ETag: "8a1bfc-30-521899bff76c0"
-Accept-Ranges: bytes
+    Last-Modified: Wed, 07 Oct 2015 20:29:55 GMT
+    ETag: "8a1bfc-30-521899bff76c0"
+    Accept-Ranges: bytes
 
 
 
+
+Next, I ran MyWebServer:
+> java MyWebServer
+
+On the Firefox browser's url, I entered:     
+http://localhost:2540/TEST
+
+In this case, FF is the Client and MyWebServer is the web server/browser.
+This is the request MyWebServer received from the FF browser CL:
+
+    Crystals-MacBook:MyWebServer cc$ java MyWebServer
+        Clark Elliott's MyWebServer Listener 1.8 starting up, listening at port 2540.
+
+        GET /TEST HTTP/1.1
+        Host: localhost:2540
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:69.0) Gecko/20100101 Firefox/69.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: keep-alive
+        Upgrade-Insecure-Requests: 1
+
+
+
+So telnet is a Client that sent a request to a web server/browser (Port: 80) and 
+reeived the following RESPONSE from the server/browser:
+        HTTP/1.1 400 Bad Request
+        Date: Sun, 06 Oct 2019 19:33:24 GMT
+        Server: Apache
+        Content-Length: 226
+        Connection: close
+        Content-Type: text/html; charset=iso-8859-1
+
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>400 Bad Request</title>
+        </head><body>
+        <h1>Bad Request</h1>
+        <p>Your browser sent a request that this server could not understand.<br />
+        </p>
+        </body></html>
+        Connection closed by foreign host.
