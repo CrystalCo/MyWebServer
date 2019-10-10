@@ -173,18 +173,30 @@ class ListenWorker extends Thread {
     }
 
     static void readFiles() {
-        String filedir;
-        // Create a file object for your root directory      
-        // For Unix:
         File f1 = new File ( "./" ) ;
         // Get all the files and directory under your diretcory
         File[] strFilesDirs = f1.listFiles();
         
-        for (int i = 0; i < strFilesDirs.length; i ++) {
-            if (strFilesDirs[i].isDirectory())   System.out.println("Directory: " + strFilesDirs[i]);
-            else if (strFilesDirs[i].isFile( ))  System.out.println ("File: " + strFilesDirs[i] +  " (" + strFilesDirs[i].length( ) + ")");
+        try {
+            PrintStream o = new PrintStream(new File("index.txt")); 
+            // Store current System.out before assigning a new value 
+            PrintStream console = System.out; 
+            // Assign o to output stream 
+            System.setOut(o); 
+            for (int i = 0; i < strFilesDirs.length; i ++) {
+                if (strFilesDirs[i].isDirectory())   System.out.println("Directory: " + strFilesDirs[i]);
+                else if (strFilesDirs[i].isFile( ))  System.out.println ("File: " + strFilesDirs[i] +  " (" + strFilesDirs[i].length( ) + ")");
+            }
+            // Use stored value for output stream 
+            System.setOut(console); 
+            System.out.println("This will be written on the console!");             
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
     }
+
+
+
 
     static void log(Socket connection, String msg) {
         System.err.println(" [" + connection.getInetAddress().getHostAddress() + ":" + connection.getPort() + "] " + msg);
