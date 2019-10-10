@@ -178,15 +178,22 @@ class ListenWorker extends Thread {
         File[] strFilesDirs = f1.listFiles();
         
         try {
-            PrintStream o = new PrintStream(new File("index.txt")); 
+            PrintStream o = new PrintStream(new File("index.html")); 
             // Store current System.out before assigning a new value 
             PrintStream console = System.out; 
             // Assign o to output stream 
             System.setOut(o); 
+            System.out.println("<html> <head> <title> MyWebServer </title> </head> <body>");
+            System.out.println("<h1>Index of /elliott/435/.xyz</h1>");
             for (int i = 0; i < strFilesDirs.length; i ++) {
-                if (strFilesDirs[i].isDirectory())   System.out.println("Directory: " + strFilesDirs[i]);
-                else if (strFilesDirs[i].isFile( ))  System.out.println ("File: " + strFilesDirs[i] +  " (" + strFilesDirs[i].length( ) + ")");
+                if (strFilesDirs[i].isDirectory()) {  
+                    System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
+                } else if (strFilesDirs[i].isFile()) {
+                    System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
+                }
             }
+            System.out.println("</body> </html>");
+
             // Use stored value for output stream 
             System.setOut(console); 
             System.out.println("This will be written on the console!");             
