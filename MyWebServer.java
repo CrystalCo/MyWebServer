@@ -127,7 +127,8 @@ class ListenWorker extends Thread {
                         filename = request.substring(5);    
                         String[] parseGetRequest = filename.split(" ");
                         filename = parseGetRequest[0];
-                        System.out.println("PARSED FILENAME: " + filename + ". filename.length: " + filename.length());
+                        System.out.println("PARSED FILENAME: " + filename);
+                        System.out.println("Filename.length: " + filename.length());
                         
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
@@ -137,9 +138,10 @@ class ListenWorker extends Thread {
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         File webserverFile = new File(pathname);
 
-                        if (webserverFile.isDirectory() || filename == "") {
+                        if (webserverFile.isDirectory() || filename.length() < 2) {
                             pathname = pathname + "index.html";
                             webserverFile = new File(pathname);
+                            readFiles();
                         }
 
                         try {
@@ -167,6 +169,20 @@ class ListenWorker extends Thread {
         } catch (IOException err2) {
             System.out.println("Connetion reset. Listening again...");
             System.out.println(err2);
+        }
+    }
+
+    static void readFiles() {
+        String filedir;
+        // Create a file object for your root directory      
+        // For Unix:
+        File f1 = new File ( "./" ) ;
+        // Get all the files and directory under your diretcory
+        File[] strFilesDirs = f1.listFiles();
+        
+        for (int i = 0; i < strFilesDirs.length; i ++) {
+            if (strFilesDirs[i].isDirectory())   System.out.println("Directory: " + strFilesDirs[i]);
+            else if (strFilesDirs[i].isFile( ))  System.out.println ("File: " + strFilesDirs[i] +  " (" + strFilesDirs[i].length( ) + ")");
         }
     }
 
