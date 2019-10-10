@@ -78,9 +78,11 @@ import java.util.*;
 
 class ListenWorker extends Thread {
     Socket sock1;
+    String localPath;
 
-    ListenWorker (Socket s) {	
-        sock1 = s; 	
+    ListenWorker (Socket s, String path) {	
+        sock1 = s;
+        localPath = path;
     } 
 
     public void run() {
@@ -143,18 +145,20 @@ class ListenWorker extends Thread {
                         
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
-                        String pathname = "./" + filename;
+                        String pathname = localPath + "/" + filename;
                         System.out.println("PATHNAME: " + pathname);
 
-                        File webserverFile = new File(filename);
+                        File webserverFile = new File(pathname);
+
                         try {
                             InputStream file = new FileInputStream(webserverFile);
-                            pout.print("HTTP/1.0 200 OK\r\n" +
-                                "Content-Type: " + guessContentType(pathname) + "\r\n" +
-                                "Server: FileServer 1.0\r\n\r\n" + 
-                                "Content-Length: 200" + "\r\n" +
-                                "Connection: close \r\n" + 
-                                "Content-Type: text/html \r\n\r\n");
+                            System.out.println("guess content type: " + guessContentType(pathname));
+
+                            pout.print("HTTP/1.0 200 OK" + "\r\n" +
+                            // "Server: FileServer 1.0" + "\r\n" + 
+                            "Content-Length: 200" + "\r\n" +
+                            // "Connection: close \r\n" + 
+                            "Content-Type: " + guessContentType(pathname) + "\r\n\r\n");
                             sendFile(file, out); // SEND RAW FILE
                             log(sock1, "200 OK");
                         } catch (FileNotFoundException e) {
@@ -163,7 +167,7 @@ class ListenWorker extends Thread {
                     }
                 } 
                 // else { System.out.println(sockdata);  }
-                System.out.flush ();
+                out.flush ();
             }        
             // sock1.close();	// closes this socket connection but not the server
         } catch (IOException err2) {
@@ -243,11 +247,24 @@ class ListenWorker extends Thread {
 // aka MyListener
 public class MyWebServer {
     public static boolean controlSwitch = true;
-    public static void main(String a[]) throws IOException {
+    public static void main(String args[]) throws IOException {
         // port http://localhost:2540
         int q_len = 6;	// # of requests for operating system to queue up
-        int port = 2540; 
+        // int port = 2540; 
         Socket sock1; // creates client socket
+        // String portNum = args[0];
+        // String pathname = args[1];
+
+        // read arguments
+        if (args.length!=2) {
+            System.out.println("Usage: java FileServer <port> <wwwhome>");
+            System.exit(-1);
+        }
+        int port = Integer.parseInt(args[0]);
+        String wwwhome = args[1];
+
+        System.out.println("First arg: " + port + " . Second arg: " + wwwhome);
+
         
         ServerSocket serverSock = new ServerSocket(port, q_len);  // creates new server socket using port number and number of requests
 
@@ -255,7 +272,7 @@ public class MyWebServer {
 
         while(controlSwitch) {
             sock1 = serverSock.accept();	// wait for the next client connection
-            new ListenWorker(sock1).start();	// Uncomment to see shutdown bug:
+            new ListenWorker(sock1, wwwhome).start();	// Uncomment to see shutdown bug:
             // try{Thread.sleep(10000);} catch(InterruptedException ex) {}
         }
     }
