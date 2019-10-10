@@ -64,6 +64,12 @@
         * Upgrade-Insecure-Requests: 1
  * 
  * 
+ * After recording the request and updating my code to match a similar response, 
+ * I compile my code again and from here on out enter my local pathname for which MyWebServer
+ * should read from:
+ * > javac *.java
+ * > java MyWebServer 2540 /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer
+ * 
  * 5. List of files needed for running the program, all of which are in the same directory.
  * a. checklist-mywebserver.html
  * b. MyWebServer.java
@@ -102,31 +108,12 @@ class ListenWorker extends Thread {
             String request;// CL Header Request
 
             // log(sock1, request);
-            
-                // WEBSERVER ACCEPTS A STRING OF FILENAME
-                // Read in the name of a file (i.e. dog.txt)
-                // CAPTURE THE FILENAME
-    
-                // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
-                // OPEN THE FILE (&/OR DIRECTORY) 
-                    // AND (SEND THE CONTENTS OF THE DATA IN THE FILE BACK TO THE WEB SERVER OVER THE SOCKET)
-                // SEND BACK THE APPROPRIATE HTTP HEADERS TO THE BROWSER
-                    // (..., Content-Length, MIME type header, Content-Type, \n, \n, )
-                    // Goal: Your web server must correctly return requests for files with extensions of .txt, and .html [and also .java which are treated as the same as .txt]. This means that it must return the correct MIME headers (That is, the Content-type [followed by two cr/lf], and Content-length headers), as well as the data. This is a server that operates on static data.
-                    //  Copy your MyListener.java source into a file called MyWebServer.java.
-                    
-                // THEN THE WEB BROWSER WILL RECEIVE THE CONTENTS OF THE FILE FROM YOUR PROGRAM 
-                // CLOSE CONNECTION DONE
-    
-                // System.out.println("Looking up " + filename);
-                // printRemoteAddress(filename, out);
-                // Return ERROR if proper headings not received:
            
             while (true) {
                 sockdata = in.readLine (); // CL Header Request
                 // save GET request:
                 if (sockdata.startsWith("GET")) {
-                    // Proccess request here
+                    // Proccess request by extracting the GET request line
                     request = sockdata;
                     System.out.println("GET REQUEST: " + request);
 
@@ -137,21 +124,28 @@ class ListenWorker extends Thread {
                         break;
                     } else {
                         // parse filename
-                        filename = request.substring(5);
+                        filename = request.substring(5);    
                         String[] parseGetRequest = filename.split(" ");
                         filename = parseGetRequest[0];
-                        System.out.println("PARSED FILENAME: " + filename);
-                        // Another way to do this: String req = request.substring(4, request.length()-9).trim();
+                        System.out.println("PARSED FILENAME: " + filename + ". filename.length: " + filename.length());
                         
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
                         String pathname = localPath + "/" + filename;
                         System.out.println("PATHNAME: " + pathname);
 
+                        // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         File webserverFile = new File(pathname);
 
+                        if (webserverFile.isDirectory() || filename == "") {
+                            pathname = pathname + "index.html";
+                            webserverFile = new File(pathname);
+                        }
+
                         try {
-                            InputStream file = new FileInputStream(webserverFile);
+                           // OPEN THE FILE (&/OR DIRECTORY) 
+                                // AND (SEND THE CONTENTS OF THE DATA IN THE FILE BACK TO THE WEB SERVER OVER THE SOCKET)
+                            InputStream file = new FileInputStream(webserverFile);  // opens the file & or directory
                             System.out.println("guess content type: " + guessContentType(pathname));
 
                             pout.print("HTTP/1.0 200 OK" + "\r\n" +
@@ -167,9 +161,9 @@ class ListenWorker extends Thread {
                     }
                 } 
                 // else { System.out.println(sockdata);  }
-                out.flush ();
+                out.flush ();   // browser receives my data output/contents of file 
             }        
-            // sock1.close();	// closes this socket connection but not the server
+            sock1.close();	// closes this socket connection but not the server
         } catch (IOException err2) {
             System.out.println("Connetion reset. Listening again...");
             System.out.println(err2);
