@@ -138,7 +138,8 @@ class ListenWorker extends Thread {
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
                         File webserverFile = new File(pathname);
 
-                        if (webserverFile.isDirectory() || filename.length() < 2) {
+                        if (webserverFile.isDirectory()) {
+                            System.out.println("This is a directory!");
                             pathname = pathname + "index.html";
                             webserverFile = new File(pathname);
                             readFiles();
@@ -174,7 +175,7 @@ class ListenWorker extends Thread {
 
     static void readFiles() {
         File f1 = new File ( "./" ) ;
-        // Get all the files and directory under your diretcory
+        // Get all the files and directory under your directory
         File[] strFilesDirs = f1.listFiles();
         
         try {
@@ -187,16 +188,16 @@ class ListenWorker extends Thread {
             System.out.println("<h1>Index of /elliott/435/.xyz</h1>");
             for (int i = 0; i < strFilesDirs.length; i ++) {
                 if (strFilesDirs[i].isDirectory()) {  
-                    System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
+                    System.out.println("<a href=\"" + strFilesDirs[i] + "/\">" + strFilesDirs[i] + "/</a><br> ");
                 } else if (strFilesDirs[i].isFile()) {
                     System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
                 }
             }
+            
             System.out.println("</body> </html>");
 
             // Use stored value for output stream 
             System.setOut(console); 
-            System.out.println("This will be written on the console!");             
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -246,6 +247,8 @@ class ListenWorker extends Thread {
             return "application/octet-stream";
         else if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
             return "image/jpeg";
+        else if (path.endsWith(".ico"))     // For favicon icon
+            return "image/x-icon";
         else    
             return "text/plain";
     }
@@ -277,23 +280,16 @@ class ListenWorker extends Thread {
 public class MyWebServer {
     public static boolean controlSwitch = true;
     public static void main(String args[]) throws IOException {
-        // port http://localhost:2540
-        int q_len = 6;	// # of requests for operating system to queue up
-        // int port = 2540; 
-        Socket sock1; // creates client socket
-        // String portNum = args[0];
-        // String pathname = args[1];
-
-        // read arguments
+        // read arguments.  If 2 arguments are not provided, return with usage syntax and close out of program.
         if (args.length!=2) {
             System.out.println("Usage: java FileServer <port> <wwwhome>");
             System.exit(-1);
         }
-        int port = Integer.parseInt(args[0]);
-        String wwwhome = args[1];
 
-        System.out.println("First arg: " + port + " . Second arg: " + wwwhome);
-
+        Socket sock1; // creates client socket
+        int q_len = 6;	// # of requests for operating system to queue up
+        int port = Integer.parseInt(args[0]);   // User must enter port number 2540 as the first argument
+        String wwwhome = args[1];       // User must enter the root directory for the files and folders they want dynamically returned.
         
         ServerSocket serverSock = new ServerSocket(port, q_len);  // creates new server socket using port number and number of requests
 
@@ -302,7 +298,7 @@ public class MyWebServer {
         while(controlSwitch) {
             sock1 = serverSock.accept();	// wait for the next client connection
             new ListenWorker(sock1, wwwhome).start();	// Uncomment to see shutdown bug:
-            // try{Thread.sleep(10000);} catch(InterruptedException ex) {}
+            // try{Thread.sleep(10000);} catch(InterruptedException ex) {System.out.println(ex);}
         }
     }
 }

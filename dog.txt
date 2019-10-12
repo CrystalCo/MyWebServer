@@ -1,2 +1,1 @@
-Woof! Woof! This is Crystal's dog file in her web directory.
-Bark! Bark!
+Woof! Woof! This is Cookie, the dog of Crystal. My file is in her web directory.  Bark! Bark!
