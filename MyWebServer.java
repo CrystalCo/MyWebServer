@@ -82,8 +82,6 @@ import java.io.*;    // importing all files under Java's input output (io) libra
 import java.net.*;   // net stands for Java's networking libraries
 import java.util.*;
 
-import javax.print.DocFlavor.STRING;
-
 class ListenWorker extends Thread {
     Socket sock1;
     String localPath;
@@ -97,7 +95,6 @@ class ListenWorker extends Thread {
         BufferedReader in = null;
         OutputStream out = null;	
         PrintStream pout = null;
-
         
         try {
             in  = new BufferedReader(new InputStreamReader(sock1.getInputStream()));
@@ -113,10 +110,13 @@ class ListenWorker extends Thread {
            
             while (true) {
                 sockdata = in.readLine (); // CL Header Request
-                // save GET request:
+                
                 if (sockdata == null) {
+                    // Fixes the "Exception in thread 'Thread-0' java.lang.NullPointerException" error I kept getting
                     return;
                 }
+
+                // Only processes lines that start with GET
                 if (sockdata.startsWith("GET")) {
                     // Proccess request by extracting the GET request line
                     request = sockdata;
@@ -128,6 +128,7 @@ class ListenWorker extends Thread {
                         errorReport(pout, sock1, "403", "Forbidden", "You don't have permission to access the requested URL.");
                         break;
                     } else if (request.contains("favicon")) {
+                        // Ignore those pesky favicon requests
                         return;
                     } else {
                         // parse request into a filename
@@ -140,11 +141,13 @@ class ListenWorker extends Thread {
                         File webserverFile;
 
                         if (filename.contains("fake-cgi")) {
+                            // parses FORM arguments submitted from addNum.html
                             String[] parameters;
                             String name;
                             String num1;
                             String num2;
-                            //FILENAME = /cgi/addnums.fake-cgi?person=Matilda&num1=4&num2=5
+                            int total;
+                            //FILENAME = cgi/addnums.fake-cgi?person=YourName&num1=2&num2=3
 
                             pathname = localPath + "/addNum.html";  // return to same html page. Later maybe change to dynamically recreate the page?
                             System.out.println("PATHNAME: " + pathname);
@@ -152,14 +155,18 @@ class ListenWorker extends Thread {
                             parameters = filename.split("\\?"); // separates filename from parameters
                             parameters = parameters[1].split("&");  // seperates parameters 
                             name = parameters[0].split("=")[1];
+                            num1 = parameters[1].split("=")[1];
+                            num2 = parameters[2].split("=")[1];
                             System.out.println("NAME: " + name);
+                            System.out.println("NUM1: " + num1);
+                            System.out.println("NUM2: " + num2);
 
-                            for (String param : parameters) {
-                                System.out.println("PARAMETERS: " + param);
-                            }
+                            total = Integer.parseInt(num1) + Integer.parseInt(num2);
+                            System.out.println("Int total: " + total);
 
                             // either return to homepage, make a new addNum txt file, 
                             // or append answer to the addNum html file.
+                            readAddNumFile(name, total);
 
                         } else {
                             // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
@@ -219,11 +226,11 @@ class ListenWorker extends Thread {
         File[] strFilesDirs = f1.listFiles();
 
         try {
-            PrintStream o = new PrintStream(new File("index.html"));
+            PrintStream outputStream = new PrintStream(new File("index.html"));
             // Store current System.out before assigning a new value
             PrintStream console = System.out;
-            // Assign o to output stream
-            System.setOut(o);
+            // Assign outputStream to output stream
+            System.setOut(outputStream);
             System.out.println("<html> <head> <title> MyWebServer </title> </head> <body>");
             System.out.println("<h1>Index of /elliott/435/.xyz</h1>");
             for (int i = 0; i < strFilesDirs.length; i++) {
@@ -233,6 +240,27 @@ class ListenWorker extends Thread {
                     System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
                 }
             }
+            
+            System.out.println("</body> </html>");
+
+            // Prints to our webserver console the pathnames it is returning to the web client.
+            System.setOut(console); 
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void readAddNumFile(String name, int total) {
+        try {
+            PrintStream outputStream = new PrintStream(new File("addNum.html"));
+            // Store current System.out before assigning a new value
+            PrintStream console = System.out;
+            // Assign outputStream to output stream
+            System.setOut(outputStream);
+            System.out.println("<html> <head> <title> Crystal's CSC-435 AddNum </title> </head> <body>");
+            System.out.println("<h1>Addnum</h1>");
+            
+            System.out.println("<h2> Bonjour, " + name + "!</h2> <p> Your total is " + String.valueOf(total) );
             
             System.out.println("</body> </html>");
 
