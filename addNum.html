@@ -1,4 +1,20 @@
-<html> <head> <title> Crystal's CSC-435 AddNum </title> </head> <body>
-<h1>Addnum</h1>
-<h2> Bonjour, Crystal!</h2> <p> Your total is 9
-</body> </html>
+<html>
+    <head> 
+        <title> CSC435 AddNum </title>
+    </head>
+    <body>
+        <h1>Crystal's Addnum</h1>
+        <form method="GET" action="http://localhost:2540/cgi/addnums.fake-cgi">
+            <p>Enter your name and two numbers:</p>
+
+            <input type="text" name="person" size=20 value="YourName">
+
+            <input type="text" name="num1" size=5 value="4"> <br>
+            <input type="text" name="num2" size=5 value="5"> <br>
+
+            <input type="submit" value="Submit Numbers">
+        </form>
+
+        <div id="answer">  </div>
+    </body>
+</html>

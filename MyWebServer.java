@@ -141,7 +141,7 @@ class ListenWorker extends Thread {
                         File webserverFile;
 
                         if (filename.contains("fake-cgi")) {
-                            // parses FORM arguments submitted from addNum.html
+                            // parses FORM arguments submitted from addnum.html
                             String[] parameters;
                             String name;
                             String num1;
@@ -149,7 +149,7 @@ class ListenWorker extends Thread {
                             int total;
                             //FILENAME = cgi/addnums.fake-cgi?person=YourName&num1=2&num2=3
 
-                            pathname = localPath + "/addNum.html";  // return to same html page. Later maybe change to dynamically recreate the page?
+                            pathname = localPath + "/addnum.html";  // return to same html page. Later maybe change to dynamically recreate the page?
                             System.out.println("PATHNAME: " + pathname);
 
                             parameters = filename.split("\\?"); // separates filename from parameters
@@ -164,8 +164,8 @@ class ListenWorker extends Thread {
                             total = Integer.parseInt(num1) + Integer.parseInt(num2);
                             System.out.println("Int total: " + total);
 
-                            // either return to homepage, make a new addNum txt file, 
-                            // or append answer to the addNum html file.
+                            // either return to homepage, make a new addnum txt file, 
+                            // or append answer to the addnum html file.
                             readAddNumFile(name, total);
 
                         } else {
@@ -252,13 +252,13 @@ class ListenWorker extends Thread {
 
     static void readAddNumFile(String name, int total) {
         try {
-            PrintStream outputStream = new PrintStream(new File("addNum.html"));
+            PrintStream outputStream = new PrintStream(new File("addnum.html"));
             // Store current System.out before assigning a new value
             PrintStream console = System.out;
             // Assign outputStream to output stream
             System.setOut(outputStream);
-            System.out.println("<html> <head> <title> Crystal's CSC-435 AddNum </title> </head> <body>");
-            System.out.println("<h1>Addnum</h1>");
+            System.out.println("<html> <head> <title> Crystal's CSC-435 AddNum Response </title> </head> <body>");
+            System.out.println("<h1>Crystal's CSC-435 AddNum Response</h1>");
             
             System.out.println("<h2> Bonjour, " + name + "!</h2> <p> Your total is " + String.valueOf(total) );
             
@@ -321,11 +321,6 @@ class ListenWorker extends Thread {
         }
         else
             return "text/plain";
-    }
-
-    static void addNum(String pathname) {
-        System.out.println("In addNum function.  Here's the pathname: ");
-        System.out.println(pathname);
     }
 
     static void printRemoteAddress(String name, PrintStream out) {
