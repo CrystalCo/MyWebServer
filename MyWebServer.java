@@ -108,7 +108,6 @@ class ListenWorker extends Thread {
 
                         } else {
                             // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
-                            // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
                             pathname = localPath + "/" + filename;
                             System.out.println("PATHNAME: " + pathname);
                         }
@@ -143,18 +142,16 @@ class ListenWorker extends Thread {
 
 	private void headerAndFiles(OutputStream out, PrintStream pout, String pathname, File webserverFile) {
 		try {
-		   // OPEN THE FILE (&/OR DIRECTORY) 
-		        // AND (SEND THE CONTENTS OF THE DATA IN THE FILE BACK TO THE WEB SERVER OVER THE SOCKET)
+		   // open the file and/or headers.  Afterwards, send over the data content in the return file back
 		    InputStream file = new FileInputStream(webserverFile);  // opens the file & or directory
-		    String contentType = guessContentType(pathname);
-		    System.out.println("Guess content type: " + contentType);
+		    String contentType = getContentType(pathname);
 
-		    pout.print("HTTP/1.0 200 OK" + "\r\n" +
+		    pout.print("HTTP/1.1 200 OK" + "\r\n" +
 		    "Server: FileServer 1.0" + "\r\n" + 
 		    "Content-Length: " + webserverFile.length() + "\r\n" +
 		    "Connection: keep-alive" + "\r\n" + 
 		    "Content-Type: " + contentType + "\r\n\r\n");
-		    sendFile(file, out);    // sends out the selected file
+		    sendMeTheFile(file, out);    // sends out the selected file
 		    System.out.println("200 OK");
         } catch (FileNotFoundException e) {
             errorReport(pout, sock1, "404", "FILE NOT FOUND", "The requested URL was not found on this server");
@@ -162,30 +159,26 @@ class ListenWorker extends Thread {
     }
 
     static void readFiles() {
-        File f1 = new File("./");
-        // Get all the files and directory under your directory
-        File[] strFilesDirs = f1.listFiles();
+        File fileInCurrentDir = new File("./");
+        File[] directoriesAndFilesList = fileInCurrentDir.listFiles();   // list out the entire collections of files under the current directory
 
         try {
             PrintStream outputStream = new PrintStream(new File("index.html"));
-            // Store current System.out before assigning a new value
-            PrintStream console = System.out;
-            // Assign outputStream to output stream
-            System.setOut(outputStream);
+            PrintStream console = System.out; // we must save the usual System.out command somewhere else in the meantime
+            System.setOut(outputStream);    // Now we can use System.out to return as a file for the web client to read
             System.out.println("<html> <head> <title> MyWebServer </title> </head> <body>");
             System.out.println("<h1>Crystal's WebServer Index</h1>");
-            for (int i = 0; i < strFilesDirs.length; i++) {
-                if (strFilesDirs[i].isDirectory()) {
-                    System.out.println("<a href=\"" + strFilesDirs[i] + "/\">" + strFilesDirs[i] + "/</a><br> ");
-                } else if (strFilesDirs[i].isFile()) {
-                    System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
+            for (int i = 0; i < directoriesAndFilesList.length; i++) {
+                if (directoriesAndFilesList[i].isDirectory()) {
+                    System.out.println("<a href=\"" + directoriesAndFilesList[i] + "/\">" + directoriesAndFilesList[i] + "/</a><br> ");
+                } else if (directoriesAndFilesList[i].isFile()) {
+                    System.out.println("<a href=\"" + directoriesAndFilesList[i] + "\">" + directoriesAndFilesList[i] + "</a><br> ");
                 }
             }
             
             System.out.println("</body> </html>");
 
-            // Prints to our webserver console the pathnames it is returning to the web client.
-            System.setOut(console); 
+            System.setOut(console); // restore System.out to its rightful place
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -194,19 +187,13 @@ class ListenWorker extends Thread {
     static void readAddNumFile(String name, int total) {
         try {
             PrintStream outputStream = new PrintStream(new File("addnum.html"));
-            // Store current System.out before assigning a new value
             PrintStream console = System.out;
-            // Assign outputStream to output stream
             System.setOut(outputStream);
             System.out.println("<html> <head> <title>CSC435 AddNum</title> </head> <body>");
             System.out.println("<h1>Crystal's AddNum</h1>");
             System.out.println("<form method=\"GET\"action=\"http://localhost:2540/cgi/addnums.fake-cgi\"> <p>Enter your name and two numbers:</p> <input type=\"text\" name=\"person\" size=20 value=\"YourName\"> <input type=\"text\" name=\"num1\" size=5 value=\"4\"> <br> <input type=\"text\" name=\"num2\" size=5 value=\"5\"> <br> <input type=\"submit\" value=\"Submit Numbers\"> </form>");
-            
             System.out.println("<h2> Bonjour, " + name + "!</h2> <p> Your total is " + String.valueOf(total) );
-            
             System.out.println("</body> </html>");
-
-            // Prints to our webserver console the pathnames it is returning to the web client.
             System.setOut(console); 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -231,25 +218,17 @@ class ListenWorker extends Thread {
         }
     }
 
-    static void sendFile(InputStream file, OutputStream out) {
+    static void sendMeTheFile(InputStream inFile, OutputStream streamout) {
         try {
-            byte[] buffer = new byte[1000];
-            while (file.available()>0) 
-                out.write(buffer, 0, file.read(buffer));
-        } catch (IOException e) { System.err.println(e); }
+            byte[] buf = new byte[1000];    // more buffer space!
+            while (inFile.available()>0)    // while more space exists
+            streamout.write(buf, 0, inFile.read(buf));      // write out the file to the buffer
+        } catch (IOException e) { System.err.println(e); }  // catch any errors and print them to the system.
     }
 
-    private static String guessContentType(String path) {
-        if (path.endsWith(".html") || path.endsWith(".htm")) 
-            return "text/html";
-        else if (path.endsWith(".txt") || path.endsWith(".java")) 
-            return "text/plain";
-        else if (path.endsWith(".gif")) 
-            return "image/gif";
-        else if (path.endsWith(".class"))
-            return "application/octet-stream";
-        else if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
-            return "image/jpeg";
+    static String getContentType(String path) {
+        if (path.endsWith(".txt") || path.endsWith(".java"))   return "text/plain";
+        else if (path.endsWith(".html"))    return "text/html";
         else if (path.endsWith(".ico"))     // For favicon icon
             return "image/x-icon";
         else if (path.contains("fake-cgi")) {
