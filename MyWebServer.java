@@ -121,9 +121,12 @@ class ListenWorker extends Thread {
                         
 
                         if (webserverFile.isDirectory()) {
+                            // returns indexed list of current directory files and folders
                             System.out.println("This is a directory!");
                             pathname = pathname + "index.html";
                             webserverFile = new File(pathname);
+                            System.out.println("WEBSERVER FILE: " + webserverFile);
+                           
                             readFiles();
                         }
                          
@@ -151,11 +154,11 @@ class ListenWorker extends Thread {
 
 		    pout.print("HTTP/1.0 200 OK" + "\r\n" +
 		    // "Server: FileServer 1.0" + "\r\n" + 
-		    "Content-Length: 200" + "\r\n" +
+		    "Content-Length: " + webserverFile.length() + "\r\n" +
 		    // "Connection: close \r\n" + 
 		    "Content-Type: " + contentType + "\r\n\r\n");
 		    sendFile(file, out); // SEND RAW FILE
-		    log(sock1, "200 OK");
+		    System.out.println("200 OK");
         } catch (FileNotFoundException e) {
             errorReport(pout, sock1, "404", "FILE NOT FOUND", "The requested URL was not found on this server");
         }
@@ -173,7 +176,7 @@ class ListenWorker extends Thread {
             // Assign outputStream to output stream
             System.setOut(outputStream);
             System.out.println("<html> <head> <title> MyWebServer </title> </head> <body>");
-            System.out.println("<h1>Index of /elliott/435/.xyz</h1>");
+            System.out.println("<h1>Crystal's WebServer Index</h1>");
             for (int i = 0; i < strFilesDirs.length; i++) {
                 if (strFilesDirs[i].isDirectory()) {
                     System.out.println("<a href=\"" + strFilesDirs[i] + "/\">" + strFilesDirs[i] + "/</a><br> ");
@@ -213,10 +216,6 @@ class ListenWorker extends Thread {
         }
     }
 
-    static void log(Socket connection, String msg) {
-        System.err.println(" [" + connection.getInetAddress().getHostAddress() + ":" + connection.getPort() + "] " + msg);
-    }
-
     static void errorReport(PrintStream pout, Socket connection, String code, String title, String msg) {
         pout.print("HTTP/1.0 " + code + " " + title + "\r\n" +
                    "\r\n" +
@@ -228,7 +227,6 @@ class ListenWorker extends Thread {
                    connection.getLocalAddress().getHostName() + 
                    " Port " + connection.getLocalPort() + "</ADDRESS>\r\n" +
                    "</BODY></HTML>\r\n");
-        log(connection, code + " " + title);
         try {
             connection.close();
         } catch(IOException err) {
@@ -263,27 +261,6 @@ class ListenWorker extends Thread {
         }
         else
             return "text/plain";
-    }
-
-    static void printRemoteAddress(String name, PrintStream out) {
-        try {
-            out.println("Looking up " + name + "...");
-            InetAddress machine = InetAddress.getByName(name);
-            out.println("Host name: " + machine.getHostName());  
-            out.println("Host IP: " + toText(machine.getAddress()));  
-        } catch(UnknownHostException err3) {
-            out.println("Failed in attempt to look up " + name);
-        }
-    }
-
-    static String toText(byte ip[]) { 
-        // turns IP address integers into string
-        StringBuffer result = new StringBuffer();
-        for (int i = 0; i < ip.length; ++i) {
-            if (i > 0) result.append(".");
-                result.append(0xff & ip[i]);
-            }
-        return result.toString();
     }
 }
 
