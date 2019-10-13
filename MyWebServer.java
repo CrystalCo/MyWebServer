@@ -82,6 +82,8 @@ import java.io.*;    // importing all files under Java's input output (io) libra
 import java.net.*;   // net stands for Java's networking libraries
 import java.util.*;
 
+import javax.print.DocFlavor.STRING;
+
 class ListenWorker extends Thread {
     Socket sock1;
     String localPath;
@@ -112,31 +114,63 @@ class ListenWorker extends Thread {
             while (true) {
                 sockdata = in.readLine (); // CL Header Request
                 // save GET request:
+                if (sockdata == null) {
+                    return;
+                }
                 if (sockdata.startsWith("GET")) {
                     // Proccess request by extracting the GET request line
                     request = sockdata;
-                    System.out.println("GET REQUEST: " + request);
+                    // System.out.println("GET REQUEST: " + request);
 
                     if (request.contains("..")) {
                         // LATER REPLACE WITH:          if (req.indexOf("..")!=-1 || req.indexOf("/.ht")!=-1 || req.endsWith("~")) {
                         // if client is trying to access directories outside this one, close the socket and return nothing to those hackers!
                         errorReport(pout, sock1, "403", "Forbidden", "You don't have permission to access the requested URL.");
                         break;
+                    } else if (request.contains("favicon")) {
+                        return;
                     } else {
-                        // parse filename
+                        // parse request into a filename
                         filename = request.substring(5);    
                         String[] parseGetRequest = filename.split(" ");
                         filename = parseGetRequest[0];
-                        System.out.println("PARSED FILENAME: " + filename);
-                        System.out.println("Filename.length: " + filename.length());
+                        System.out.println("\n" + "PARSED FILENAME: " + filename);
+
+                        String pathname;
+                        File webserverFile;
+
+                        if (filename.contains("fake-cgi")) {
+                            String[] parameters;
+                            String name;
+                            String num1;
+                            String num2;
+                            //FILENAME = /cgi/addnums.fake-cgi?person=Matilda&num1=4&num2=5
+
+                            pathname = localPath + "/addNum.html";  // return to same html page. Later maybe change to dynamically recreate the page?
+                            System.out.println("PATHNAME: " + pathname);
+
+                            parameters = filename.split("\\?"); // separates filename from parameters
+                            parameters = parameters[1].split("&");  // seperates parameters 
+                            name = parameters[0].split("=")[1];
+                            System.out.println("NAME: " + name);
+
+                            for (String param : parameters) {
+                                System.out.println("PARAMETERS: " + param);
+                            }
+
+                            // either return to homepage, make a new addNum txt file, 
+                            // or append answer to the addNum html file.
+
+                        } else {
+                            // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
+                            // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
+                            pathname = localPath + "/" + filename;
+                            System.out.println("PATHNAME: " + pathname);
+                        }
                         
                         // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
-                        // String pathname = "/Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/" + filename;
-                        String pathname = localPath + "/" + filename;
-                        System.out.println("PATHNAME: " + pathname);
-
-                        // LOOK IN DIRECTORY WHERE THE WEBSERVER IS RUNNING FOR THAT FILE
-                        File webserverFile = new File(pathname);
+                        webserverFile = new File(pathname);
+                        
 
                         if (webserverFile.isDirectory()) {
                             System.out.println("This is a directory!");
@@ -144,23 +178,9 @@ class ListenWorker extends Thread {
                             webserverFile = new File(pathname);
                             readFiles();
                         }
-
-                        try {
-                           // OPEN THE FILE (&/OR DIRECTORY) 
-                                // AND (SEND THE CONTENTS OF THE DATA IN THE FILE BACK TO THE WEB SERVER OVER THE SOCKET)
-                            InputStream file = new FileInputStream(webserverFile);  // opens the file & or directory
-                            System.out.println("guess content type: " + guessContentType(pathname));
-
-                            pout.print("HTTP/1.0 200 OK" + "\r\n" +
-                            // "Server: FileServer 1.0" + "\r\n" + 
-                            "Content-Length: 200" + "\r\n" +
-                            // "Connection: close \r\n" + 
-                            "Content-Type: " + guessContentType(pathname) + "\r\n\r\n");
-                            sendFile(file, out); // SEND RAW FILE
-                            log(sock1, "200 OK");
-                        } catch (FileNotFoundException e) {
-                            errorReport(pout, sock1, "404", "FILE NOT FOUND", "The requested URL was not found on this server");
-                        }
+                         
+                        headerAndFiles(out, pout, pathname, webserverFile);
+                        
                     }
                 } 
                 // else { System.out.println(sockdata);  }
@@ -173,21 +193,41 @@ class ListenWorker extends Thread {
         }
     }
 
+	private void headerAndFiles(OutputStream out, PrintStream pout, String pathname, File webserverFile) {
+		try {
+		   // OPEN THE FILE (&/OR DIRECTORY) 
+		        // AND (SEND THE CONTENTS OF THE DATA IN THE FILE BACK TO THE WEB SERVER OVER THE SOCKET)
+		    InputStream file = new FileInputStream(webserverFile);  // opens the file & or directory
+		    String contentType = guessContentType(pathname);
+		    System.out.println("Guess content type: " + contentType);
+
+		    pout.print("HTTP/1.0 200 OK" + "\r\n" +
+		    // "Server: FileServer 1.0" + "\r\n" + 
+		    "Content-Length: 200" + "\r\n" +
+		    // "Connection: close \r\n" + 
+		    "Content-Type: " + contentType + "\r\n\r\n");
+		    sendFile(file, out); // SEND RAW FILE
+		    log(sock1, "200 OK");
+        } catch (FileNotFoundException e) {
+            errorReport(pout, sock1, "404", "FILE NOT FOUND", "The requested URL was not found on this server");
+        }
+    }
+
     static void readFiles() {
-        File f1 = new File ( "./" ) ;
+        File f1 = new File("./");
         // Get all the files and directory under your directory
         File[] strFilesDirs = f1.listFiles();
-        
+
         try {
-            PrintStream o = new PrintStream(new File("index.html")); 
-            // Store current System.out before assigning a new value 
-            PrintStream console = System.out; 
-            // Assign o to output stream 
-            System.setOut(o); 
+            PrintStream o = new PrintStream(new File("index.html"));
+            // Store current System.out before assigning a new value
+            PrintStream console = System.out;
+            // Assign o to output stream
+            System.setOut(o);
             System.out.println("<html> <head> <title> MyWebServer </title> </head> <body>");
             System.out.println("<h1>Index of /elliott/435/.xyz</h1>");
-            for (int i = 0; i < strFilesDirs.length; i ++) {
-                if (strFilesDirs[i].isDirectory()) {  
+            for (int i = 0; i < strFilesDirs.length; i++) {
+                if (strFilesDirs[i].isDirectory()) {
                     System.out.println("<a href=\"" + strFilesDirs[i] + "/\">" + strFilesDirs[i] + "/</a><br> ");
                 } else if (strFilesDirs[i].isFile()) {
                     System.out.println("<a href=\"" + strFilesDirs[i] + "\">" + strFilesDirs[i] + "</a><br> ");
@@ -196,15 +236,12 @@ class ListenWorker extends Thread {
             
             System.out.println("</body> </html>");
 
-            // Use stored value for output stream 
+            // Prints to our webserver console the pathnames it is returning to the web client.
             System.setOut(console); 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
-
-
-
 
     static void log(Socket connection, String msg) {
         System.err.println(" [" + connection.getInetAddress().getHostAddress() + ":" + connection.getPort() + "] " + msg);
@@ -236,6 +273,7 @@ class ListenWorker extends Thread {
                 out.write(buffer, 0, file.read(buffer));
         } catch (IOException e) { System.err.println(e); }
     }
+
     private static String guessContentType(String path) {
         if (path.endsWith(".html") || path.endsWith(".htm")) 
             return "text/html";
@@ -249,8 +287,17 @@ class ListenWorker extends Thread {
             return "image/jpeg";
         else if (path.endsWith(".ico"))     // For favicon icon
             return "image/x-icon";
-        else    
+        else if (path.contains("fake-cgi")) {
+            System.out.println("Caught fake-cgi request!");
+            return "text/html";
+        }
+        else
             return "text/plain";
+    }
+
+    static void addNum(String pathname) {
+        System.out.println("In addNum function.  Here's the pathname: ");
+        System.out.println(pathname);
     }
 
     static void printRemoteAddress(String name, PrintStream out) {
