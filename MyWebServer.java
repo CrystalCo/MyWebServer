@@ -61,10 +61,8 @@ class ListenWorker extends Thread {
                 if (sockdata.startsWith("GET")) {
                     // Proccess request by extracting the GET request line
                     request = sockdata;
-                    // System.out.println("GET REQUEST: " + request);
 
-                    if (request.contains("..")) {
-                        // LATER REPLACE WITH:          if (req.indexOf("..")!=-1 || req.indexOf("/.ht")!=-1 || req.endsWith("~")) {
+                    if (request.contains("..") || request.contains("~")) {
                         // if client is trying to access directories outside this one, close the socket and return nothing to those hackers!
                         errorReport(pout, sock1, "403", "Forbidden", "You don't have permission to access the requested URL.");
                         break;
@@ -88,7 +86,6 @@ class ListenWorker extends Thread {
                             String num1;
                             String num2;
                             int total;
-                            //FILENAME = cgi/addnums.fake-cgi?person=YourName&num1=2&num2=3
 
                             pathname = localPath + "/addnum.html";  // return to same html page. Later maybe change to dynamically recreate the page?
                             System.out.println("PATHNAME: " + pathname);
@@ -134,7 +131,7 @@ class ListenWorker extends Thread {
                         
                     }
                 } 
-                // else { System.out.println(sockdata);  }
+                // else { System.out.println(sockdata);  }      // Returns the rest of the request headers that don't start with GET
                 out.flush ();   // browser receives my data output/contents of file 
             }        
             sock1.close();	// closes this socket connection but not the server
@@ -153,11 +150,11 @@ class ListenWorker extends Thread {
 		    System.out.println("Guess content type: " + contentType);
 
 		    pout.print("HTTP/1.0 200 OK" + "\r\n" +
-		    // "Server: FileServer 1.0" + "\r\n" + 
+		    "Server: FileServer 1.0" + "\r\n" + 
 		    "Content-Length: " + webserverFile.length() + "\r\n" +
-		    // "Connection: close \r\n" + 
+		    "Connection: keep-alive" + "\r\n" + 
 		    "Content-Type: " + contentType + "\r\n\r\n");
-		    sendFile(file, out); // SEND RAW FILE
+		    sendFile(file, out);    // sends out the selected file
 		    System.out.println("200 OK");
         } catch (FileNotFoundException e) {
             errorReport(pout, sock1, "404", "FILE NOT FOUND", "The requested URL was not found on this server");

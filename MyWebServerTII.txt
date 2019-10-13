@@ -1,0 +1,144 @@
+MYWEBSERVER
+
+
+
+
+
+
+
+================================================================================================
+http-streams.txt
+
+
+TO RUN TELNET:
+I installed the telnet application using homebrew:
+> brew install telnet
+
+After it finished installing, I tested it by entering:
+> telnet condor.depaul.edu 80
+
+Then I ran the depaul hostname and web server port, as provided in the instructions:
+
+        Crystals-MacBook:MyWebServer cc$ telnet condor.depaul.edu 80
+        Trying 216.220.180.150...
+        Connected to condor.depaul.edu.
+        Escape character is '^]'.
+
+I gave telnet the following input:
+
+        http://condor.depaul.edu/elliott/cat.html
+
+This is the HTTP response I received:
+
+        HTTP/1.1 400 Bad Request
+        Date: Sun, 06 Oct 2019 19:33:24 GMT
+        Server: Apache
+        Content-Length: 226
+        Connection: close
+        Content-Type: text/html; charset=iso-8859-1
+
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>400 Bad Request</title>
+        </head><body>
+        <h1>Bad Request</h1>
+        <p>Your browser sent a request that this server could not understand.<br />
+        </p>
+        </body></html>
+        Connection closed by foreign host.
+
+Apparently, I was not the only student to get this response. 
+Also, Telnet did not provide lines for "Last-Modified", "Etag", or "Accept-Ranges: bytes" like
+the example provided in our assignment:
+    Last-Modified: Wed, 07 Oct 2015 20:29:55 GMT
+    ETag: "8a1bfc-30-521899bff76c0"
+    Accept-Ranges: bytes
+
+
+
+
+Next, I ran MyWebServer:
+> java MyWebServer
+
+On the Firefox browser's url, I entered:     
+http://localhost:2540/TEST
+
+In this case, FF is the Client and MyWebServer is the web server/browser.
+This is the request MyWebServer received from the FF browser CL:
+
+    Crystals-MacBook:MyWebServer cc$ java MyWebServer
+        Clark Elliott's MyWebServer Listener 1.8 starting up, listening at port 2540.
+
+        GET /TEST HTTP/1.1
+        Host: localhost:2540
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:69.0) Gecko/20100101 Firefox/69.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: keep-alive
+        Upgrade-Insecure-Requests: 1
+
+
+
+So telnet is a Client that sent a request to a web server/browser (Port: 80) and 
+reeived the following RESPONSE from the server/browser:
+        HTTP/1.1 400 Bad Request
+        Date: Sun, 06 Oct 2019 19:33:24 GMT
+        Server: Apache
+        Content-Length: 226
+        Connection: close
+        Content-Type: text/html; charset=iso-8859-1
+
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>400 Bad Request</title>
+        </head><body>
+        <h1>Bad Request</h1>
+        <p>Your browser sent a request that this server could not understand.<br />
+        </p>
+        </body></html>
+        Connection closed by foreign host.
+
+
+
+================================================================================================
+serverlog.txt
+PARSED FILENAME:
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/
+This is a directory!
+WEBSERVER FILE: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/index.html
+<a href="./index.html">./index.html</a><br>
+<a href="./.DS_Store">./.DS_Store</a><br>
+<a href="./addNum.html">./addNum.html</a><br>
+<a href="./serverlog.txt">./serverlog.txt</a><br>
+<a href="./dog.txt">./dog.txt</a><br>
+<a href="./MyWebServer.class">./MyWebServer.class</a><br>
+<a href="./ListenWorker.class">./ListenWorker.class</a><br>
+<a href="./z-directory/">./z-directory/</a><br>
+<a href="./cat.html">./cat.html</a><br>
+<a href="./.git/">./.git/</a><br>
+<a href="./MyWebServer.java">./MyWebServer.java</a><br>
+<a href="./checklist-mywebserver.html">./checklist-mywebserver.html</a><br>
+<a href="./http-streams.txt">./http-streams.txt</a><br>
+Guess content type: text/html
+200 OK
+
+PARSED FILENAME: addNum.html
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/addNum.html
+Guess content type: text/html
+200 OK
+
+PARSED FILENAME: cgi/addnums.fake-cgi?person=Crystal&num1=11&num2=22
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/addnum.html
+NAME: Crystal
+NUM1: 11
+NUM2: 22
+Int total: 33
+Guess content type: text/html
+200 OK
+
+
+
+
+
+================================================================================================

@@ -1,0 +1,33 @@
+PARSED FILENAME:
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/
+This is a directory!
+WEBSERVER FILE: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/index.html
+<a href="./index.html">./index.html</a><br>
+<a href="./.DS_Store">./.DS_Store</a><br>
+<a href="./addNum.html">./addNum.html</a><br>
+<a href="./serverlog.txt">./serverlog.txt</a><br>
+<a href="./dog.txt">./dog.txt</a><br>
+<a href="./MyWebServer.class">./MyWebServer.class</a><br>
+<a href="./ListenWorker.class">./ListenWorker.class</a><br>
+<a href="./z-directory/">./z-directory/</a><br>
+<a href="./cat.html">./cat.html</a><br>
+<a href="./.git/">./.git/</a><br>
+<a href="./MyWebServer.java">./MyWebServer.java</a><br>
+<a href="./checklist-mywebserver.html">./checklist-mywebserver.html</a><br>
+<a href="./http-streams.txt">./http-streams.txt</a><br>
+Guess content type: text/html
+200 OK
+
+PARSED FILENAME: addNum.html
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/addNum.html
+Guess content type: text/html
+200 OK
+
+PARSED FILENAME: cgi/addnums.fake-cgi?person=Crystal&num1=11&num2=22
+PATHNAME: /Users/crystalcontreras/Desktop/DePaul/2019Autumn/Distributed_Systems_CSC435/MyWebServer/addnum.html
+NAME: Crystal
+NUM1: 11
+NUM2: 22
+Int total: 33
+Guess content type: text/html
+200 OK
