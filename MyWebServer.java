@@ -257,8 +257,9 @@ class ListenWorker extends Thread {
             PrintStream console = System.out;
             // Assign outputStream to output stream
             System.setOut(outputStream);
-            System.out.println("<html> <head> <title> Crystal's CSC-435 AddNum Response </title> </head> <body>");
-            System.out.println("<h1>Crystal's CSC-435 AddNum Response</h1>");
+            System.out.println("<html> <head> <title>CSC435 AddNum</title> </head> <body>");
+            System.out.println("<h1>Crystal's AddNum</h1>");
+            System.out.println("<form method=\"GET\"action=\"http://localhost:2540/cgi/addnums.fake-cgi\"> <p>Enter your name and two numbers:</p> <input type=\"text\" name=\"person\" size=20 value=\"YourName\"> <input type=\"text\" name=\"num1\" size=5 value=\"4\"> <br> <input type=\"text\" name=\"num2\" size=5 value=\"5\"> <br> <input type=\"submit\" value=\"Submit Numbers\"> </form>");
             
             System.out.println("<h2> Bonjour, " + name + "!</h2> <p> Your total is " + String.valueOf(total) );
             
